@@ -2,7 +2,7 @@
 
 require_once('opencloud/lib/rackspace.php');
 
-define('INIFILE', $_SERVER['HOME']."/.rackspace_cloud_credentials");
+define('INIFILE', $_SERVER['HOME']."/.rackspace_php-opencloud_creds");
 $ini = parse_ini_file(INIFILE, TRUE);
 if (!$ini) {
     printf("Unable to load .ini file [%s]\n", INIFILE);
