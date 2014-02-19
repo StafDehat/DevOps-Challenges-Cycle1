@@ -10,6 +10,8 @@
 
 from auth import *
 
-#compute = Compute::server()
-#compute = pyrax.connect_to_cloudservers()
+cdb = pyrax.cloud_databases
+
+
+
 
