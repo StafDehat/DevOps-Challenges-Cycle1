@@ -10,6 +10,7 @@ pyrax.set_setting("identity_type", "rackspace")
 # [rackspace_cloud]
 # username = myusername
 # api_key = 01234567890abcdef
+
 print
 print "Using credentials file"
 

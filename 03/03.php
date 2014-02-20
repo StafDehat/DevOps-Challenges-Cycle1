@@ -40,7 +40,7 @@ while (true) {
     echo "Error: Invalid domain name.\n\n";
   } else {
     // Verify domain entered exists
-    $domainlist = $dns->DomainList();
+    $domainlist->reset();
     while($zone = $domainlist->Next()) {
       if ($zone->name == "$domain") {
         $exists = 1;
