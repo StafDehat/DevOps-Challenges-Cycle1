@@ -15,6 +15,9 @@
 
 import uuid
 import time
+import pprint
+from pprint import pprint
+from inspect import getmembers
 from auth import *
 
 CDB = pyrax.cloud_databases
@@ -92,6 +95,7 @@ print "ID:    ", mycdb.id
 print "Status:", mycdb.status
 print "RAM:   ", mycdb.flavor.name
 print "Disk:  ", mycdb.volume.size
+print "URL:   ", mycdb.links[1]['href']
 
 if mycdb.status != "ACTIVE":
   print
@@ -118,16 +122,17 @@ except:
   exit(1)
 
 print
-print "Database 'db%s' has been created." % nm
-print "Current databases for instance '%s':" % inst.name
-for db in dbs:
-  print db.name
+for x in range(0, numdbs):
+  mycdb.create_database("db" + str(x))
+  print "Database 'db%s' has been created." % (x)
+  mycdb.create_user("user"+str(x), "starwars", database_names="db"+str(x))
+  print "User '%s' has been created on instance '%s'." % ("user"+str(x), mycdb.name)
 #done
 print
-
-
-
-mycdb.create_database("db" + str(x))
-dbs = mycdb.list_databases()
+print "Even though the challenge said to 'Return the Cloud DB URL', it's not"
+print "possible to use 'return' outside of a function.  All I've got to work"
+print "with is exit status, so you'll have to settle for the URL printed out"
+print "in the CDB instance summary above."
+print
 
 
