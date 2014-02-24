@@ -108,8 +108,8 @@ if mycdb.status != "ACTIVE":
 # Add some databases to the instance
 print
 print "It has been stated:"
-print "The script should also create X number of Databases and X number"
-print "of users in the new Cloud Database Instance."
+print "\"The script should also create X number of Databases and X number"
+print "of users in the new Cloud Database Instance.\""
 opt = raw_input("How many is X? ")
 
 try:
@@ -125,7 +125,7 @@ print
 for x in range(0, numdbs):
   mycdb.create_database("db" + str(x))
   print "Database 'db%s' has been created." % (x)
-  mycdb.create_user("user"+str(x), "starwars", database_names="db"+str(x))
+  mycdb.create_user("user"+str(x), "password"+str(x), database_names="db"+str(x))
   print "User '%s' has been created on instance '%s'." % ("user"+str(x), mycdb.name)
 #done
 print
