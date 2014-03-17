@@ -9,6 +9,10 @@
 import os
 import pyrax
 import pprint
+import inspect
+import time
+from auth import *
+
 
 CS = pyrax.cloudservers
 CLB = pyrax.cloud_loadbalancers
@@ -17,7 +21,7 @@ numnodes = 2
 
 # Set csimage
 for img in CS.images.list():
-  if "CentOS 6.4" in img.name:
+  if "CentOS " in img.name:
     csimage = img
     break
   #fi
@@ -46,24 +50,61 @@ for server in servers:
     server = CS.servers.get(server.id)
     time.sleep(10)
     print "Waiting on " + server.name + "..."
-    if server.status != "ACTIVE":
+    if server.status != "BUILD":
       break
     #fi
   #done
 #done
 
-pprint.pprint(server)
-
 #
-# Build a load balancer with the cloud servers as nodes
-nodes = []
+# Confirm successful builds
 for server in servers:
-  node = clb.Node(address=server., port=80, condition="ENABLED")
-  vip = clb.VirtualIP(type="PUBLIC")
-  lb = clb.create(lb_name, port=80, protocol="HTTP", nodes=[node], virtual_ips=[vip])
+  server = CS.servers.get(server.id)
+  if server.status != "ACTIVE":
+    print "ERROR: Server '" + server.name + "' did not build successfully."
+    exit(1)
+  #fi
 #done
 
+#
+# Create a list of nodes to be used for load balancing
+nodes = []
+for server in servers:
+  node = CLB.Node(address=server.networks["private"][0], port=80, condition="ENABLED")
+  nodes.append(node)
+#done
+
+#
+# Build the load balancer
+vip = CLB.VirtualIP(type="PUBLIC")
+lb = CLB.create(namebase, port=80, protocol="HTTP", nodes=nodes, virtual_ips=[vip])
+
+#
+# Wait for load balancer to build
+while True:
+  lb = CLB.get(lb.id)
+  time.sleep(10)
+  print "Waiting on LB build..."
+  if lb.status != "BUILD":
+    break
+  #fi
+#done
+print "LB no longer building."
+
+#
+# Confirm successful build
+lb = CLB.get(lb.id)
+if lb.status != "ACTIVE":
+  print "ERROR: LB did not build successfully."
+  exit(2)
+#fi
+print "LB built successfully"
+
+#
+# Add an error page & walk away
+print "Adding error page to LB"
+html = "<html><head><title>Whoops</title></head><body>All nodes are down.</body></html>"
+lb.set_error_page(html)
 
 
-
-
+print "All tasks complete"
