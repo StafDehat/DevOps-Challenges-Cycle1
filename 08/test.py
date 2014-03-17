@@ -17,7 +17,7 @@ from auth import *
 CS = pyrax.cloudservers
 DNS = pyrax.cloud_dns
 namebase = "andr4596"
-parentZone=namebase + ".info"
+parentZone="andr4596.info"
 numnodes = 1
 
 # Set csimage
@@ -33,37 +33,6 @@ for flavor in CS.flavors.list():
   if flavor.ram == 1024:
     cssize = flavor
     break
-  #fi
-#done
-
-#
-# Initialize the builds
-servers = []
-for x in range(1,numnodes+1):
-  servername = namebase + "-0" + str(x)
-  servers.append(CS.servers.create(servername, csimage.id, cssize.id))
-#done
-
-#
-# Wait for server builds to finish
-for server in servers:
-  while True:
-    server = CS.servers.get(server.id)
-    time.sleep(10)
-    print "Waiting on " + server.name + "..."
-    if server.status != "BUILD":
-      break
-    #fi
-  #done
-#done
-
-#
-# Confirm successful builds
-for server in servers:
-  server = CS.servers.get(server.id)
-  if server.status != "ACTIVE":
-    print "ERROR: Server '" + server.name + "' did not build successfully."
-    exit(1)
   #fi
 #done
 
@@ -107,9 +76,10 @@ if domid == -1:
 else:
   print "Domain already exists in DNS."
 #fi
+print "ID: " + str(domid)
 
 #
-# Create an A record
+# Create a record
 domain = DNS.get(domid)
 a_rec = {"type": "A",
         "name": str(server.name) + "." + parentZone,
@@ -124,9 +94,8 @@ domain.add_records([a_rec])
 
 #
 # Print IP Address, FQDN, and Monitoring Entity ID
-print "Server IP:  " + str(server.networks["public"][0])
-print "FQDN:       " + str(server.name) + "." + parentZone
-print "Monitor ID: " + str("...")
+
+
 
 
 
