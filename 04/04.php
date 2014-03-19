@@ -73,30 +73,71 @@ echo "Enabling CDN on container.\n";
 $container->EnableCDN();
 
 
-// Upload directory to container
-if ($handle = opendir($localDir)) {
-  while (false !== ($file = readdir($handle))) {
-    if (is_file($localDir."/".$file)) {
-      if (is_readable($localDir."/".$file)) {
-        // Upload file to new Cloud Files container
-        $CFfile = $container->DataObject();
-        $CFfile->Create(array('name'=>$file), "$localDir/$file");
-      } else {
-        echo "Skipping file \"$localDir/$file\" - unable to read.\n";
-      }
-    } else {
-      echo "Skipping directory \"$localDir/$file\".\n";
-    }
-  }
-  closedir($handle);
-} else {
-  echo "Error: Unable to open directory \"$localDir\".\n";
-  usage($argv[0]);
+// Lots of helpers to upload recursively
+function fileUnder5G($handle) {
+  return filesize($handle) < 1024 * 1024 * 1024 * 5;
 }
 
+function uploadSmallFile($topDir, $subDir, $filename) {
+  $container = $GLOBALS['container'];
+  $dirPrefix = str_replace("/", "_", $subDir);
+  $CFName = $dirPrefix ."_". $filename;
+  echo "Uploading '$topDir/$subDir/$filename' as '$CFName'\n";
+  $CFfile = $container->DataObject();
+  $CFfile->Create(array('name'=>$CFName), "$topDir/$subDir/$filename");
+}
+
+function uploadLargeFile($topDir, $subDir, $filename) {
+  $container = $GLOBALS['container'];
+  $dirPrefix=str_replace("/", "_", $subDir);
+  $CFName = $dirPrefix ."_". $filename;
+  echo "Uploading '$topDir/$subDir/$filename' as '$CFName'\n";
+  $transfer = $container->setupObjectTransfer(array(
+    'name' => $CFName,
+    'path' => "$topDir/$subDir/$filename",
+    'concurrency' => 4,
+    'partSize'    => 1.0 * Size::GB
+  ));
+  $transfer->upload();
+}
+
+function uploadFile($topDir, $subDir, $filename) {
+  if (fileUnder5G("$topDir/$subDir/$filename")) {
+    uploadSmallFile($topDir, $subDir, $filename);
+  } else {
+    uploadLargeFile($topDir, $subDir, $filename);
+  }
+}
+
+function uploadDir($topDir, $subDir) {
+  //echo "Entering directory: $topDir/$subDir\n";
+  if (! $handle = opendir("$topDir/$subDir")) {
+    echo "Error: Unable to open directory \"$topDir/$subDir\".\n";
+    exit(1);
+  }
+  $contents = scandir("$topDir/$subDir");
+  foreach ($contents as $handle) {
+    if (is_link("$topDir/$subDir/$handle")) {
+      echo "Skipping symlink: $topDir/$subDir/$handle\n";
+    } elseif (is_dir("$topDir/$subDir/$handle")) {
+      if ( $handle === "." || $handle === ".." ) {
+        //echo "Ignoring directory: $topDir/$subDir/$handle\n";
+      } else {
+        uploadDir($topDir, "$subDir/$handle");
+      }
+    } elseif (is_file("$topDir/$subDir/$handle")) {
+      uploadFile($topDir, $subDir, $handle);
+    } else {
+      echo "Ignoring unknown 'file': $topDir/$subDir/$handle \n";
+    }#fi
+  }#done
+}
+
+// Upload directory recursively
+uploadDir($localDir, "");
 
 // Output CDN URL
-echo "Container CDN URL: ". $container->PublicURL() ."\n";
+echo "\nContainer CDN URL: ". $container->PublicURL() ."\n";
 
 
 ?>
