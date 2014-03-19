@@ -127,7 +127,7 @@ CMents = CM.list_entities()
 if CMents:
   for CMent in CMents:
     if CMent.label == server.name:
-      print "Using Cloud Monitoring entity ID: " + CMent.id
+      print "Using Cloud Monitoring entity ID: " + CMent.id + "\n"
       break
     #fi
   #done
