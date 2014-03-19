@@ -1,3 +1,4 @@
+#!/usr/bin/php
 <?php
 
 // __Challenge 4__:
