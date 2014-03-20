@@ -61,7 +61,7 @@ for server in servers:
 
 #
 # Confirm successful builds
-for server in servers:
+#for server in servers:
   server = CS.servers.get(server.id)
   if server.status != "ACTIVE":
     print "ERROR: Server '" + server.name + "' did not build successfully."
@@ -77,14 +77,23 @@ print "Not sure what DNS zone to use..."
 print "We're just gonna use " + parentZone + " as the parent zone."
 
 #
+# This code won't work 'till my pull request gets added to pyrax.
+#print "Things that match andr"
+#zones = DNS.search(name="andr")
+#pprint.pprint(zones)
+#print "All zones"
+#zones = DNS.search()
+#pprint.pprint(zones)
+
+#
 # Search for a zone with this name
-domid=-1
+domID = -1
 domains = DNS.list() #limit=100
 while True:
   try:
     for domain in domains:
       if domain.name == parentZone:
-        domid=domain.id
+        domID=domain.id
         raise Exception("DomainFound");
       #fi
     #done
@@ -95,13 +104,13 @@ while True:
 #done
 
 #
-# If we found it, domid is its ID.  If not, create it.
-if domid == -1:
+# If we found it, domID is its ID.  If not, create it.
+if domID == -1:
   print "Zone file does not exist."
   try:
     dom = DNS.create(name=parentZone, emailAddress="devnull@rootmypc.net",
                      ttl=900, comment="Challenge 08")
-    domid=dom.id
+    domID=dom.id
     print "Zone file created."
   except exc.DomainCreationFailed as e:
     print("Zone file creation failed:", e)
@@ -112,7 +121,7 @@ else:
 
 #
 # Create an A record
-domain = DNS.get(domid)
+domain = DNS.get(domID)
 a_rec = {"type": "A",
         "name": str(server.name) + "." + parentZone,
         "data": str(server.accessIPv4),
