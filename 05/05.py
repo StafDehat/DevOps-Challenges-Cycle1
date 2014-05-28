@@ -7,12 +7,6 @@
 # number of users in the new Cloud Database Instance. The script must return 
 # the Cloud DB URL. Choose your language and SDK!
 
-# Python is a steaming pile.  Call me when you're ready to go PHP instead.
-# (04:04:56 PM) Joe Stevenson: in > 2.6
-# (04:04:50 PM) Joe Stevenson: apparently you can do "db{0}".format(x)
-# (04:05:14 PM) Joe Stevenson: I don't know if thats better but it's definitely different
-
-
 import uuid
 import time
 import pprint
